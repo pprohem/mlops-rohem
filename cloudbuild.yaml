@@ -29,8 +29,8 @@ steps:
     args:
       - -c
       - |
-        pip install -r requirements.txt
-        python scripts/submit_pipeline.py \
-          --image-uri=us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}
+        pip3 install --break-system-packages -r requirements.txt
+        python3 scripts/submit_pipeline.py \
+          --image-uri=us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA} 
 options:
-  logging: CLOUD_LOGGING_ONLY
+  logging: LEGACY

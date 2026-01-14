@@ -1,18 +1,12 @@
-from kfp.v2 import dsl
-from google.cloud import aiplatform
+# pipelines/train_pipeline.py
+from kfp import dsl
+from google_cloud_pipeline_components.v1.custom_job import CustomTrainingJobOp
 
 @dsl.pipeline(name="cd4ml-train-pipeline")
-def pipeline(project_id: str, region: str, image: str):
-
-    aiplatform.CustomContainerTrainingJobRunOp(
+def pipeline(image: str):
+    CustomTrainingJobOp(
         display_name="train-model",
         container_uri=image,
+        machine_type="e2-standard-4",
         replica_count=1,
-        machine_type="n1-standard-2",
-        environment_variables={
-            "PROJECT_ID": project_id,
-            "DATASET": "mlops_trial",
-            "TABLE": "casas_rw",
-            "MODEL_DIR": "/gcs/models"
-        }
     )

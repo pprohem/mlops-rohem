@@ -21,3 +21,5 @@ steps:
   #     - '-c'
   #     - |
   #       python scripts/submit_pipeline.py
+options:
+  logging: CLOUD_LOGGING_ONLY

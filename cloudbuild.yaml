@@ -1,25 +1,32 @@
+# cloudbuild.yaml
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
+  # 1️⃣ Build da imagem de treino
+  - name: gcr.io/cloud-builders/docker
     args:
       [
-        'build',
-        '-t',
-        'us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}',
-        './training'
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}",
+        "./training"
       ]
 
-  - name: 'gcr.io/cloud-builders/docker'
+  # 2️⃣ Push da imagem
+  - name: gcr.io/cloud-builders/docker
     args:
       [
-        'push',
-        'us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}'
+        "push",
+        "us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}"
       ]
 
-  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  #   entrypoint: 'bash'
-  #   args:
-  #     - '-c'
-  #     - |
-  #       python scripts/submit_pipeline.py
+  # 3️⃣ Submissão da pipeline no Vertex
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        pip install -r requirements.txt
+        python scripts/submit_pipeline.py \
+          --image-uri=us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}
+          --project-id=mlops-rohem \
 options:
   logging: CLOUD_LOGGING_ONLY

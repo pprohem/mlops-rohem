@@ -1,18 +1,27 @@
+# scripts/submit_pipeline.py
+import argparse
 from google.cloud import aiplatform
-from pipelines.train_pipeline import pipeline
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--image-uri", required=True)
+args = parser.parse_args()
+
+PROJECT_ID = "mlops-rohem"
+REGION = "us-central1"
+PIPELINE_ROOT = "gs://mlops-rohem-pipelines/pipelines"
 
 aiplatform.init(
-    project="mlops-rohem",
-    location="us-central1"
+    project=PROJECT_ID,
+    location=REGION,
 )
 
-aiplatform.PipelineJob(
-    display_name="cd4ml-pipeline-run",
+job = aiplatform.PipelineJob(
+    display_name="cd4ml-train-pipeline",
     template_path="pipeline.json",
-    pipeline_root="gs://mlops-cd4ml-trial/pipelines",
+    pipeline_root=PIPELINE_ROOT,
     parameter_values={
-        "project_id": "mlops-rohem",
-        "region": "us-central1",
-        "image": "IMAGE_URI"
+        "image": args.image_uri
     }
-).run()
+)
+
+job.submit()

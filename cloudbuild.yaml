@@ -1,7 +1,8 @@
 # cloudbuild.yaml
 steps:
-  # 1️⃣ Build da imagem de treino
-  - name: gcr.io/cloud-builders/docker
+  # 1️⃣ Construir imagem Docker de treinamento
+  - id: build-training-image
+    name: gcr.io/cloud-builders/docker
     args:
       [
         "build",
@@ -10,16 +11,20 @@ steps:
         "./training"
       ]
 
-  # 2️⃣ Push da imagem
-  - name: gcr.io/cloud-builders/docker
+  # 2️⃣ Publicar imagem no Artifact Registry
+  - id: push-training-image
+    name: gcr.io/cloud-builders/docker
+    waitFor: ['build-training-image']
     args:
       [
         "push",
         "us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}"
       ]
 
-  # 3️⃣ Submissão da pipeline no Vertex
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  # 3️⃣ Submeter pipeline no Vertex AI
+  - id: submit-vertex-pipeline
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    waitFor: ['push-training-image']
     entrypoint: bash
     args:
       - -c

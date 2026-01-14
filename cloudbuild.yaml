@@ -33,4 +33,4 @@ steps:
         python3 scripts/submit_pipeline.py \
           --image-uri=us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA} 
 options:
-  logging: LEGACY
+  logging: CLOUD_LOGGING_ONLY

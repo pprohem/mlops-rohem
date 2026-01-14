@@ -1,0 +1,6 @@
+google-cloud-aiplatform
+google-cloud-bigquery
+kfp
+pandas
+scikit-learn
+joblib

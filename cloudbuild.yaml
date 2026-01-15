@@ -2,6 +2,7 @@ substitutions:
   _REGION: us-central1
   _MODEL_NAME: casas-model
   _PIPELINE_PACKAGE: mlops-pipelines==0.1.0
+  _IMAGE_URI: ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
 
 steps:
   # =====================================================

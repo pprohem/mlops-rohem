@@ -25,9 +25,9 @@ steps:
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
     waitFor: ["build-training-image"]
 
-  # =====================================================
-  # 3) Instalar SDK de pipelines
-  # =====================================================
+# =====================================================
+# 3) Instalar SDK de pipelines
+# =====================================================
   - id: install-pipeline-sdk
     name: python:3.11
     entrypoint: bash
@@ -36,7 +36,9 @@ steps:
       - |
         set -e
         python -m pip install --upgrade pip
-        python -m pip install ${_PIPELINE_PACKAGE}
+        python -m pip install \
+          --index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
+          ${_PIPELINE_PACKAGE}
     waitFor: ["push-training-image"]
 
   # =====================================================

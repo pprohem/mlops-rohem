@@ -37,10 +37,9 @@ steps:
         set -e
         python -m pip install --upgrade pip
         python -m pip install \
-          --index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
-          ${_PIPELINE_PACKAGE}
+          --extra-index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
+          mlops-pipelines==0.1.0
     waitFor: ["push-training-image"]
-
   # =====================================================
   # 4) Compilar pipeline
   # =====================================================

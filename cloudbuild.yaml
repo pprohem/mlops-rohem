@@ -59,7 +59,6 @@ steps:
         python - <<EOF
         from google.cloud import aiplatform
 
-        # ===== Variáveis vindas do Cloud Build =====
         PROJECT_ID = "${PROJECT_ID}"
         REGION = "${_REGION}"
         MODEL_NAME = "${_MODEL_NAME}"
@@ -68,14 +67,15 @@ steps:
         RUN_ID = "${SHORT_SHA}"
         ENVIRONMENT = "dev"
 
-        # ===== Init Vertex =====
+        PIPELINE_DISPLAY_NAME = f"train-{MODEL_NAME}-{RUN_ID}"
+
         aiplatform.init(
             project=PROJECT_ID,
             location=REGION,
         )
 
         job = aiplatform.PipelineJob(
-            display_name=f"train-{MODEL_NAME}-{RUN_ID}",
+            display_name=PIPELINE_DISPLAY_NAME,
             template_path="pipeline.json",
             parameter_values={
                 "project_id": PROJECT_ID,
@@ -88,10 +88,10 @@ steps:
             },
         )
 
-        # ===== Submissão assíncrona =====
+        # Submissão assíncrona
         job.run(sync=False)
 
-        # ===== Logs amigáveis =====
+        # Logs SEM acessar resource_name
         print("")
         print("=================================================")
         print("🚀 Pipeline submetida com sucesso ao Vertex AI")
@@ -104,15 +104,16 @@ steps:
         print(f"🔁 Run ID:         {RUN_ID}")
         print(f"🏷️  Ambiente:      {ENVIRONMENT}")
         print("-------------------------------------------------")
-        print("🔗 Vertex UI:")
+        print("🔗 Vertex UI (lista de execuções):")
         print(
             f"https://console.cloud.google.com/vertex-ai/locations/"
-            f"{REGION}/pipelines/runs/"
-            f"{job.resource_name.split('/')[-1]}?project={PROJECT_ID}"
+            f"{REGION}/pipelines?project={PROJECT_ID}"
         )
+        print("ℹ️  Procure pelo pipeline:")
+        print(f"    {PIPELINE_DISPLAY_NAME}")
         print("-------------------------------------------------")
-        print("ℹ️  A execução continuará de forma assíncrona no Vertex AI.")
-        print("ℹ️  O Cloud Build foi finalizado com sucesso.")
+        print("ℹ️  Execução ocorre de forma assíncrona no Vertex AI.")
+        print("ℹ️  Cloud Build finalizado com sucesso.")
         print("=================================================")
         print("")
         EOF

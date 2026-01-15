@@ -3,9 +3,11 @@ import json
 import os
 
 import pandas as pd
+import pandas_gbq
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 import joblib
+import numpy as np
 
 
 def read_bigquery_table(dataset_uri: str) -> pd.DataFrame:
@@ -21,7 +23,7 @@ def read_bigquery_table(dataset_uri: str) -> pd.DataFrame:
 
     query = f"SELECT * FROM `{project}.{dataset}.{table}`"
 
-    return pd.read_gbq(query, project_id=project)
+    return pandas_gbq.read_gbq(query, project_id=project)
 
 
 def main():
@@ -66,7 +68,7 @@ def main():
 
     metrics = {
         "r2": float(r2_score(y, y_pred)),
-        "rmse": float(mean_squared_error(y, y_pred, squared=False)),
+        "rmse": float(np.sqrt(mean_squared_error(y, y_pred))),
         "num_samples": int(len(df)),
     }
 

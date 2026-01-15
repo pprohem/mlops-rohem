@@ -58,27 +58,39 @@ steps:
         python - <<EOF
         from google.cloud import aiplatform
 
+        # ===== Variáveis vindas do Cloud Build =====
+        PROJECT_ID = "${PROJECT_ID}"
+        REGION = "${_REGION}"
+        MODEL_NAME = "${_MODEL_NAME}"
+        IMAGE_URI = "${_IMAGE_URI}"
+        DATASET_URI = "bq://${PROJECT_ID}.ml_rw.casas_rw"
+        RUN_ID = "${SHORT_SHA}"
+        ENVIRONMENT = "dev"
+
+        # ===== Init Vertex =====
         aiplatform.init(
-            project="${PROJECT_ID}",
-            location="${_REGION}",
+            project=PROJECT_ID,
+            location=REGION,
         )
 
         job = aiplatform.PipelineJob(
-            display_name="train-${_MODEL_NAME}-${SHORT_SHA}",
+            display_name=f"train-{MODEL_NAME}-{RUN_ID}",
             template_path="pipeline.json",
             parameter_values={
-                "project_id": "${PROJECT_ID}",
-                "region": "${_REGION}",
-                "model_name": "${_MODEL_NAME}",
-                "image_uri": "${_IMAGE_URI}",
-                "dataset_uri": "bq://${PROJECT_ID}.mlops_trial.casas_rw",
-                "run_id": "${SHORT_SHA}",
-                "environment": "dev",
+                "project_id": PROJECT_ID,
+                "region": REGION,
+                "model_name": MODEL_NAME,
+                "image_uri": IMAGE_URI,
+                "dataset_uri": DATASET_URI,
+                "run_id": RUN_ID,
+                "environment": ENVIRONMENT,
             },
         )
 
+        # ===== Submissão assíncrona =====
         job.run(sync=False)
 
+        # ===== Logs amigáveis =====
         print("")
         print("=================================================")
         print("🚀 Pipeline submetida com sucesso ao Vertex AI")
@@ -91,8 +103,12 @@ steps:
         print(f"🔁 Run ID:         {RUN_ID}")
         print(f"🏷️  Ambiente:      {ENVIRONMENT}")
         print("-------------------------------------------------")
-        print(f"🔗 Vertex UI:")
-        print(f"https://console.cloud.google.com/vertex-ai/locations/{REGION}/pipelines/runs/{job.resource_name.split('/')[-1]}?project={PROJECT_ID}")
+        print("🔗 Vertex UI:")
+        print(
+            f"https://console.cloud.google.com/vertex-ai/locations/"
+            f"{REGION}/pipelines/runs/"
+            f"{job.resource_name.split('/')[-1]}?project={PROJECT_ID}"
+        )
         print("-------------------------------------------------")
         print("ℹ️  A execução continuará de forma assíncrona no Vertex AI.")
         print("ℹ️  O Cloud Build foi finalizado com sucesso.")

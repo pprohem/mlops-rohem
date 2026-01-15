@@ -1,4 +1,4 @@
-from google.cloud import bigquery
+from google.cloud import bigquery, storage
 import pandas as pd
 import joblib
 import json
@@ -46,14 +46,42 @@ r2 = model.score(X_test, y_test)
 print(f"MAE={mae}")
 print(f"R2={r2}")
 
-joblib.dump(model, f"{MODEL_DIR}/model.joblib")
+# Salvar localmente primeiro
+local_model_path = "/tmp/model.joblib"
+local_metrics_path = "/tmp/metrics.json"
+
+joblib.dump(model, local_model_path)
 
 metrics = {
     "mae": mae,
     "r2": r2
 }
 
-with open(f"{MODEL_DIR}/metrics.json", "w") as f:
+with open(local_metrics_path, "w") as f:
     json.dump(metrics, f)
 
-print("FILES IN MODEL_DIR (after):", os.listdir(MODEL_DIR))
+# Upload para GCS se MODEL_DIR for um caminho gs://
+if MODEL_DIR.startswith("gs://"):
+    # Extrair bucket e path do MODEL_DIR
+    gcs_path = MODEL_DIR.replace("gs://", "")
+    bucket_name = gcs_path.split("/")[0]
+    blob_prefix = "/".join(gcs_path.split("/")[1:])
+    
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    
+    # Upload model
+    model_blob = bucket.blob(f"{blob_prefix}/model.joblib")
+    model_blob.upload_from_filename(local_model_path)
+    print(f"Model uploaded to {MODEL_DIR}/model.joblib")
+    
+    # Upload metrics
+    metrics_blob = bucket.blob(f"{blob_prefix}/metrics.json")
+    metrics_blob.upload_from_filename(local_metrics_path)
+    print(f"Metrics uploaded to {MODEL_DIR}/metrics.json")
+else:
+    # Salvar direto no diretório local
+    joblib.dump(model, f"{MODEL_DIR}/model.joblib")
+    with open(f"{MODEL_DIR}/metrics.json", "w") as f:
+        json.dump(metrics, f)
+    print(f"Files saved to {MODEL_DIR}")

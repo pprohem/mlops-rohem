@@ -23,11 +23,11 @@ if df.empty:
 # Selecionar apenas colunas numéricas
 df = df.select_dtypes(include=['number'])
 
-if "price" not in df.columns:
-    raise ValueError("Coluna 'price' não encontrada nos dados")
+if "preco" not in df.columns:
+    raise ValueError("Coluna 'preco' não encontrada nos dados")
 
-X = df.drop("price", axis=1)
-y = df["price"]
+X = df.drop("preco", axis=1)
+y = df["preco"]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 

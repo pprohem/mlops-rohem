@@ -1,5 +1,6 @@
 google-cloud-aiplatform
 google-cloud-bigquery
+google_cloud_pipeline_components
 kfp
 pandas
 scikit-learn

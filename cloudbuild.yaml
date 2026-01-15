@@ -2,7 +2,7 @@ substitutions:
   _REGION: us-central1
   _MODEL_NAME: casas-model
   _PIPELINE_PACKAGE: mlops-pipelines==0.1.0
-  _IMAGE_URI: ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
+  _IMAGE_URI: ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
 
 steps:
   # =====================================================
@@ -13,7 +13,7 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
       - .
 
   # =====================================================
@@ -23,7 +23,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
     waitFor: ["build-training-image"]
 
 # =====================================================
@@ -40,7 +40,7 @@ steps:
         # Instala tudo que esse step precisa
         python -m pip install --upgrade pip
         python -m pip install \
-          --extra-index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
+          --extra-index-url https://us-central1-python.pkg.dev/mlops-rohem/mlops-python/simple/ \
           mlops-pipelines==0.2.3 \
           google-cloud-aiplatform
 

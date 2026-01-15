@@ -26,30 +26,24 @@ steps:
     waitFor: ["build-training-image"]
 
 # =====================================================
-# 3) Instalar SDK de pipelines
+# 3) Compile pipeline + submit no Vertex
 # =====================================================
-  - id: install-pipeline-sdk
+  - id: compile-and-submit-pipeline
     name: python:3.11
     entrypoint: bash
     args:
       - -c
       - |
         set -e
+
+        # Instala tudo que esse step precisa
         python -m pip install --upgrade pip
         python -m pip install \
           --extra-index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
-          mlops-pipelines==0.1.0
-    waitFor: ["push-training-image"]
-  # =====================================================
-  # 4) Compilar pipeline
-  # =====================================================
-  - id: compile-pipeline
-    name: python:3.11
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        set -e
+          mlops-pipelines==0.1.0 \
+          google-cloud-aiplatform
+
+        # Compila pipeline
         python - <<EOF
         from kfp.compiler import Compiler
         from mlops_pipelines.pipelines.training import training_pipeline
@@ -59,20 +53,8 @@ steps:
             package_path="pipeline.json",
         )
         EOF
-    waitFor: ["install-pipeline-sdk"]
 
-  # =====================================================
-  # 5) Submeter pipeline no Vertex
-  # =====================================================
-  - id: submit-vertex-pipeline
-    name: python:3.11
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        set -e
-        python -m pip install google-cloud-aiplatform
-
+        # Submete no Vertex
         python - <<EOF
         from google.cloud import aiplatform
 
@@ -88,14 +70,15 @@ steps:
                 "project_id": "${PROJECT_ID}",
                 "region": "${_REGION}",
                 "model_name": "${_MODEL_NAME}",
-                "image_uri": "${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}",
+                "image_uri": "${_IMAGE_URI}",
                 "dataset_uri": "bq://${PROJECT_ID}.mlops_trial.casas_rw",
                 "run_id": "${SHORT_SHA}",
                 "environment": "dev",
             },
         )
+
+        job.run()
         EOF
-    waitFor: ["compile-pipeline"]
 
 options:
   logging: CLOUD_LOGGING_ONLY

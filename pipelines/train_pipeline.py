@@ -8,6 +8,7 @@ def pipeline(image: str):
         project="mlops-rohem",
         location="us-central1",
         display_name="train-model",
+        base_output_directory="gs://mlops-cd4ml-trial/training",  # 👈 AQUI
         worker_pool_specs=[{
             "machine_spec": {
                 "machine_type": "e2-standard-4",

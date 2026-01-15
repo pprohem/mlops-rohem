@@ -1,6 +1,7 @@
 from google.cloud import bigquery
 import pandas as pd
 import joblib
+import json
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -42,3 +43,11 @@ print(f"MAE={mae}")
 print(f"R2={r2}")
 
 joblib.dump(model, f"{MODEL_DIR}/model.joblib")
+
+metrics = {
+    "mae": mae,
+    "r2": r2
+}
+
+with open(f"{MODEL_DIR}/metrics.json", "w") as f:
+    json.dump(metrics, f)

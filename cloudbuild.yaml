@@ -77,7 +77,27 @@ steps:
             },
         )
 
-        job.run()
+        job.run(sync=False)
+
+        print("")
+        print("=================================================")
+        print("🚀 Pipeline submetida com sucesso ao Vertex AI")
+        print("-------------------------------------------------")
+        print(f"📦 Projeto:        {PROJECT_ID}")
+        print(f"🌍 Região:         {REGION}")
+        print(f"🧠 Modelo:         {MODEL_NAME}")
+        print(f"🖼️  Image URI:     {IMAGE_URI}")
+        print(f"📊 Dataset URI:   {DATASET_URI}")
+        print(f"🔁 Run ID:         {RUN_ID}")
+        print(f"🏷️  Ambiente:      {ENVIRONMENT}")
+        print("-------------------------------------------------")
+        print(f"🔗 Vertex UI:")
+        print(f"https://console.cloud.google.com/vertex-ai/locations/{REGION}/pipelines/runs/{job.resource_name.split('/')[-1]}?project={PROJECT_ID}")
+        print("-------------------------------------------------")
+        print("ℹ️  A execução continuará de forma assíncrona no Vertex AI.")
+        print("ℹ️  O Cloud Build foi finalizado com sucesso.")
+        print("=================================================")
+        print("")
         EOF
 
 options:

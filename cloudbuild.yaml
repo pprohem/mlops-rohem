@@ -12,7 +12,7 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
       - .
 
   # =====================================================
@@ -87,7 +87,7 @@ steps:
                 "project_id": "${PROJECT_ID}",
                 "region": "${_REGION}",
                 "model_name": "${_MODEL_NAME}",
-                "image_uri": "${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}",
+                "image_uri": "${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}",
                 "dataset_uri": "bq://${PROJECT_ID}.mlops_trial.casas_rw",
                 "run_id": "${SHORT_SHA}",
                 "environment": "dev",

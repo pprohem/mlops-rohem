@@ -41,7 +41,7 @@ steps:
         python -m pip install --upgrade pip
         python -m pip install \
           --extra-index-url https://us-central1-python.pkg.dev/$PROJECT_ID/mlops-python/simple/ \
-          mlops-pipelines==0.2.0 \
+          mlops-pipelines==0.2.1 \
           google-cloud-aiplatform
 
         # Compila pipeline
@@ -57,6 +57,7 @@ steps:
 
         # Submete no Vertex
         python - <<EOF
+        import sys
         from google.cloud import aiplatform
 
         PROJECT_ID = "${PROJECT_ID}"
@@ -116,6 +117,7 @@ steps:
         print("ℹ️  Cloud Build finalizado com sucesso.")
         print("=================================================")
         print("")
+        sys.stdout.flush()
         EOF
 
 options:

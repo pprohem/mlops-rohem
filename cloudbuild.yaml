@@ -64,7 +64,7 @@ steps:
         REGION = "${_REGION}"
         MODEL_NAME = "${_MODEL_NAME}"
         IMAGE_URI = "${_IMAGE_URI}"
-        DATASET_URI = "bq://${PROJECT_ID}.ml_rw.casas_rw"
+        DATASET_URI = "bq://${PROJECT_ID}.mlops_trial.casas_rw"
         RUN_ID = "${SHORT_SHA}"
         ENVIRONMENT = "dev"
 

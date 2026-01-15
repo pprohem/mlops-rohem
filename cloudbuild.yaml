@@ -22,7 +22,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops/${_MODEL_NAME}:${SHORT_SHA}
     waitFor: ["build-training-image"]
 
   # =====================================================

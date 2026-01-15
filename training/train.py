@@ -10,9 +10,9 @@ from sklearn.metrics import mean_absolute_error
 PROJECT_ID = os.environ["PROJECT_ID"]
 DATASET = os.environ["DATASET"]
 TABLE = os.environ["TABLE"]
-MODEL_DIR = os.environ["MODEL_DIR"]
+MODEL_DIR = os.environ.get("AIP_MODEL_DIR", "/tmp")
 
-print("MODEL_DIR =", os.environ.get("MODEL_DIR"))
+print("MODEL_DIR =", MODEL_DIR)
 print("PWD =", os.getcwd())
 print("FILES IN MODEL_DIR (before):", os.listdir(os.environ.get("MODEL_DIR", "/")))
 

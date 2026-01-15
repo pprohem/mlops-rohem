@@ -12,6 +12,10 @@ DATASET = os.environ["DATASET"]
 TABLE = os.environ["TABLE"]
 MODEL_DIR = os.environ["MODEL_DIR"]
 
+print("MODEL_DIR =", os.environ.get("MODEL_DIR"))
+print("PWD =", os.getcwd())
+print("FILES IN MODEL_DIR (before):", os.listdir(os.environ.get("MODEL_DIR", "/")))
+
 client = bigquery.Client(project=PROJECT_ID)
 
 df = client.query(
@@ -51,3 +55,5 @@ metrics = {
 
 with open(f"{MODEL_DIR}/metrics.json", "w") as f:
     json.dump(metrics, f)
+
+print("FILES IN MODEL_DIR (after):", os.listdir(MODEL_DIR))

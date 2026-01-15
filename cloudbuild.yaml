@@ -1,8 +1,8 @@
 substitutions:
   _REGION: us-central1
   _MODEL_NAME: casas-model
-  _PIPELINE_PACKAGE: mlops-pipelines==0.1.0
-  _IMAGE_URI: ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
+  _PIPELINE_PACKAGE: mlops-pipelines==0.2.3
+  _IMAGE_URI: us-central1-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
 
 steps:
   # =====================================================
@@ -13,7 +13,7 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_IMAGE_URI}
       - .
 
   # =====================================================
@@ -23,29 +23,33 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/mlops-rohem/mlops/${_MODEL_NAME}:${SHORT_SHA}
+      - ${_IMAGE_URI}
     waitFor: ["build-training-image"]
 
-# =====================================================
-# 3) Compile pipeline + submit no Vertex
-# =====================================================
-  - id: compile-and-submit-pipeline
+  # =====================================================
+  # 3) Compile + Submit pipeline (FIRE-AND-FORGET)
+  # =====================================================
+  - id: submit-vertex-pipeline
     name: python:3.11
     entrypoint: bash
+    waitFor: ["push-training-image"]
     args:
       - -c
       - |
         set -e
 
-        # Instala tudo que esse step precisa
-        python -m pip install --upgrade pip
-        python -m pip install \
-          --extra-index-url https://us-central1-python.pkg.dev/mlops-rohem/mlops-python/simple/ \
-          mlops-pipelines==0.2.3 \
-          google-cloud-aiplatform
+        echo "🔧 Instalando dependências mínimas..."
+        python -m pip install --upgrade pip > /dev/null
 
-        # Compila pipeline
-        python - <<EOF
+        python -m pip install \
+          --quiet \
+          --extra-index-url https://us-central1-python.pkg.dev/mlops-rohem/mlops-python/simple/ \
+          ${_PIPELINE_PACKAGE} \
+          google-cloud-aiplatform \
+          kfp
+
+        echo "📦 Compilando pipeline..."
+        python - <<'EOF'
         from kfp.compiler import Compiler
         from mlops_pipelines.pipelines.training import training_pipeline
 
@@ -55,16 +59,15 @@ steps:
         )
         EOF
 
-        # Submete no Vertex
-        python - <<EOF
-        import sys
+        echo "🚀 Submetendo pipeline ao Vertex AI (async)..."
+        python - <<'EOF'
         from google.cloud import aiplatform
 
         PROJECT_ID = "${PROJECT_ID}"
         REGION = "${_REGION}"
         MODEL_NAME = "${_MODEL_NAME}"
         IMAGE_URI = "${_IMAGE_URI}"
-        DATASET_URI = "bq://${PROJECT_ID}.mlops_trial.casas_rw"
+        DATASET_URI = f"bq://{PROJECT_ID}.mlops_trial.casas_rw"
         RUN_ID = "${SHORT_SHA}"
         ENVIRONMENT = "dev"
 
@@ -89,35 +92,25 @@ steps:
             },
         )
 
-        # Submissão assíncrona
+        # 🔥 FIRE-AND-FORGET REAL
         job.run(sync=False)
 
-        # Logs SEM acessar resource_name
         print("")
         print("=================================================")
         print("🚀 Pipeline submetida com sucesso ao Vertex AI")
         print("-------------------------------------------------")
-        print(f"📦 Projeto:        {PROJECT_ID}")
-        print(f"🌍 Região:         {REGION}")
-        print(f"🧠 Modelo:         {MODEL_NAME}")
-        print(f"🖼️  Image URI:     {IMAGE_URI}")
-        print(f"📊 Dataset URI:   {DATASET_URI}")
-        print(f"🔁 Run ID:         {RUN_ID}")
-        print(f"🏷️  Ambiente:      {ENVIRONMENT}")
+        print(f"🧠 Modelo:     {MODEL_NAME}")
+        print(f"🔁 Run ID:     {RUN_ID}")
+        print(f"🖼️ Image URI: {IMAGE_URI}")
+        print(f"📊 Dataset:   {DATASET_URI}")
         print("-------------------------------------------------")
-        print("🔗 Vertex UI (lista de execuções):")
+        print("🔗 Vertex Pipelines:")
         print(
             f"https://console.cloud.google.com/vertex-ai/locations/"
             f"{REGION}/pipelines?project={PROJECT_ID}"
         )
-        print("ℹ️  Procure pelo pipeline:")
-        print(f"    {PIPELINE_DISPLAY_NAME}")
-        print("-------------------------------------------------")
-        print("ℹ️  Execução ocorre de forma assíncrona no Vertex AI.")
-        print("ℹ️  Cloud Build finalizado com sucesso.")
+        print("ℹ️ Execução assíncrona. Cloud Build encerrando.")
         print("=================================================")
-        print("")
-        sys.stdout.flush()
         EOF
 
 options:

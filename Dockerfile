@@ -5,6 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/train/train.py .
+# Copia TODO o código necessário
+COPY src/train/train.py ./train.py
+COPY src/train/evaluate.py ./evaluate.py
 
-ENTRYPOINT ["python", "train.py"]

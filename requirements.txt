@@ -1,8 +1,4 @@
-google-cloud-aiplatform
-google-cloud-bigquery
-google_cloud_pipeline_components
-google-cloud-bigquery-storage
-kfp
 pandas
+pandas-gbq
+google-cloud-bigquery
 scikit-learn
-joblib

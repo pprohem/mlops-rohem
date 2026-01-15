@@ -1,37 +1,100 @@
-# cloudbuild.yaml
+substitutions:
+  _REGION: us-central1
+  _MODEL_NAME: casas-model
+  _PIPELINE_PACKAGE: mlops-pipelines==0.1.0
+
 steps:
-  # 1️⃣ Construir imagem Docker de treinamento
+  # =====================================================
+  # 1) Build da imagem de treino
+  # =====================================================
   - id: build-training-image
     name: gcr.io/cloud-builders/docker
     args:
-      [
-        "build",
-        "-t",
-        "us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}",
-        "./training"
-      ]
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}
+      - .
 
-  # 2️⃣ Publicar imagem no Artifact Registry
+  # =====================================================
+  # 2) Push da imagem
+  # =====================================================
   - id: push-training-image
     name: gcr.io/cloud-builders/docker
-    waitFor: ['build-training-image']
     args:
-      [
-        "push",
-        "us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}"
-      ]
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}
+    waitFor: ["build-training-image"]
 
-  # 3️⃣ Submeter pipeline no Vertex AI
-  - id: submit-vertex-pipeline
-    name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    waitFor: ['push-training-image']
+  # =====================================================
+  # 3) Instalar SDK de pipelines
+  # =====================================================
+  - id: install-pipeline-sdk
+    name: python:3.11
     entrypoint: bash
     args:
       - -c
       - |
-        pip3 install --break-system-packages -r requirements.txt
-        export PYTHONPATH=/workspace
-        python3 scripts/submit_pipeline.py \
-          --image-uri=us-central1-docker.pkg.dev/mlops-rohem/mlops/train:${SHORT_SHA}
+        set -e
+        python -m pip install --upgrade pip
+        python -m pip install ${_PIPELINE_PACKAGE}
+    waitFor: ["push-training-image"]
+
+  # =====================================================
+  # 4) Compilar pipeline
+  # =====================================================
+  - id: compile-pipeline
+    name: python:3.11
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        python - <<EOF
+        from kfp.compiler import Compiler
+        from mlops_pipelines.pipelines.training import training_pipeline
+
+        Compiler().compile(
+            pipeline_func=training_pipeline,
+            package_path="pipeline.json",
+        )
+        EOF
+    waitFor: ["install-pipeline-sdk"]
+
+  # =====================================================
+  # 5) Submeter pipeline no Vertex
+  # =====================================================
+  - id: submit-vertex-pipeline
+    name: python:3.11
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        python -m pip install google-cloud-aiplatform
+
+        python - <<EOF
+        from google.cloud import aiplatform
+
+        aiplatform.init(
+            project="${PROJECT_ID}",
+            location="${_REGION}",
+        )
+
+        job = aiplatform.PipelineJob(
+            display_name="train-${_MODEL_NAME}-${SHORT_SHA}",
+            template_path="pipeline.json",
+            parameter_values={
+                "project_id": "${PROJECT_ID}",
+                "region": "${_REGION}",
+                "model_name": "${_MODEL_NAME}",
+                "image_uri": "${_REGION}-docker.pkg.dev/$PROJECT_ID/mlops-train/${_MODEL_NAME}:${SHORT_SHA}",
+                "dataset_uri": "bq://${PROJECT_ID}.mlops_trial.casas_rw",
+                "run_id": "${SHORT_SHA}",
+                "environment": "dev",
+            },
+        )
+        EOF
+    waitFor: ["compile-pipeline"]
+
 options:
   logging: CLOUD_LOGGING_ONLY

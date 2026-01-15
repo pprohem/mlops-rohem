@@ -1,8 +1,0 @@
-project_id: mlops-rohem
-region: us-central1
-dataset: mlops_trial
-table: casas_rw
-
-training:
-  machine_type: n1-standard-2
-  mae_threshold: 25000
